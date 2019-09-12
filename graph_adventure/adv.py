@@ -22,6 +22,32 @@ player = Player("Name", world.startingRoom)
 
 # FILL THIS IN
 traversalPath = ['n', 's']
+graph = {}
+
+def populateGraph():
+    exits = player.currentRoom.getExits()
+    roomId = player.currentRoom.id 
+    graph[roomId] = {}
+    for e in exits:
+        graph[roomId].update({e: "?"})
+
+def playerTravel():
+    roomId = player.currentRoom.id
+    populateGraph()
+    for e in graph[roomId]:
+        if graph[roomId][e] == "?":
+            move = e
+            break
+    player.travel(move)
+    populateGraph()
+    print(roomId)
+
+playerTravel()
+
+
+
+
+
 
 
 # TRAVERSAL TEST
