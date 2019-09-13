@@ -24,7 +24,7 @@ player = Player("Name", world.startingRoom)
 traversalPath = ['n', 's', 'e', 'w']
 graph = {}
 
-def populateGraph():
+def populateGraph(roomId):
     exits = player.currentRoom.getExits()
     if player.currentRoom.id in graph:
         return
@@ -38,17 +38,79 @@ def populateGraph():
     # for e in exits:
     #     graph[roomId].update({e: "?"})
 
+def updateGraph(prevRoom, newRoom, direction):
+    graph[prevRoom].update({direction: newRoom})
+    if direction == "n":
+        graph[newRoom].update({"s": prevRoom})
+    if direction == "s":
+        graph[newRoom].update({"n": prevRoom})
+    if direction == "e":
+        graph[newRoom].update({"w": prevRoom})
+    if direction == "w":
+        graph[newRoom].update({"e": prevRoom})
+
+
+
 
 def playerTravel():
-    roomId = player.currentRoom.id
-    populateGraph()
-    for e in graph[roomId]:
-        if graph[roomId][e] == "?":
-            move = e
-            break
-    player.travel(move)
-    populateGraph()
-    print(roomId)
+    visited_rooms = set()
+    player.currentRoom = world.startingRoom
+    lastRoom = world.startingRoom
+
+    while len(visited_rooms) != len(roomGraph):
+        global traversalPath
+        visited_rooms.add(player.currentRoom.id)
+        populateGraph(player.currentRoom.id)
+
+        for e in graph[player.currentRoom.id]:
+            print(graph[player.currentRoom.id], e)
+            if graph[player.currentRoom.id][e] == "?":
+                move = e
+                traversalPath.append(move)
+                player.travel(move)
+                visited_rooms.add(player.currentRoom.id)
+                break
+            while "?" not in list(graph[player.currentRoom.id].values()):
+                reversedPath = []
+                for i in traversalPath:
+                    reversedPath.append(i)
+                reversedPath.reverse()
+                for idx, d in enumerate(reversedPath):
+                    if d == "n":
+                        reversedPath[idx] = "s"
+                        continue
+                    if d == "s":
+                        reversedPath[idx] = "n"
+                        continue
+                    if d == "e":
+                        reversedPath[idx] = "w"
+                        continue
+                    if d == "w":
+                        reversedPath[idx] = "e"
+                        continue
+                for idx, i in enumerate(reversedPath):
+                    player.travel(i)
+                    if "?" in list(graph[player.currentRoom.id].values()):
+                        if idx == 0:
+                            traversalPath += reversedPath[0]
+                        else:
+                            traversalPath += (reversedPath[0:idx+1])
+                        break
+
+        visited_rooms.add(player.currentRoom.id)
+        populateGraph(player.currentRoom)
+        updateGraph(lastRoom.id, player.currentRoom.id, move)
+        lastRoom = player.currentRoom
+        print(len(graph))
+    # roomId = player.currentRoom.id
+    # populateGraph()
+    # for e in graph[roomId]:
+    #     if graph[roomId][e] == "?":
+    #         move = e
+    #         break
+    # player.travel(move)
+    # populateGraph()
+    # print(roomId)
 
 playerTravel()
 
